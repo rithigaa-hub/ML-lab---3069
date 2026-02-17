@@ -1,0 +1,86 @@
+import pandas as pd
+import numpy as np
+
+# -------- SAMPLE DATASET --------
+data = {
+    'Outlook':     ['Sunny','Sunny','Overcast','Rain','Rain','Rain',
+                    'Overcast','Sunny','Sunny','Rain','Sunny','Overcast','Overcast','Rain'],
+    'Temperature': ['Hot','Hot','Hot','Mild','Cool','Cool',
+                    'Mild','Hot','Cool','Mild','Mild','Mild','Hot','Mild'],
+    'Humidity':    ['High','High','High','High','Normal','Normal',
+                    'Normal','High','Normal','Normal','Normal','High','Normal','High'],
+    'Wind':        ['Weak','Strong','Weak','Weak','Weak','Strong',
+                    'Strong','Weak','Weak','Weak','Strong','Strong','Weak','Strong'],
+    'PlayTennis':  ['No','No','Yes','Yes','Yes','No',
+                    'Yes','No','Yes','Yes','Yes','Yes','Yes','No']
+}
+
+dataset = pd.DataFrame(data)
+
+
+# -------- ENTROPY FUNCTION --------
+def entropy(target_col):
+    elements, counts = np.unique(target_col, return_counts=True)
+    ent = 0
+    for i in range(len(elements)):
+        p = counts[i] / np.sum(counts)
+        ent -= p * np.log2(p)
+    return ent
+
+
+# -------- INFORMATION GAIN --------
+def InfoGain(data, split_attribute, target="PlayTennis"):
+
+    total_entropy = entropy(data[target])
+
+    vals, counts = np.unique(data[split_attribute], return_counts=True)
+
+    weighted_entropy = 0
+    for i in range(len(vals)):
+        subset = data[data[split_attribute] == vals[i]][target]
+        weighted_entropy += (counts[i] / np.sum(counts)) * entropy(subset)
+
+    return total_entropy - weighted_entropy
+
+
+# -------- ID3 ALGORITHM --------
+def ID3(data, features, target="PlayTennis", parent_class=None):
+
+    # If all examples have same class
+    if len(np.unique(data[target])) == 1:
+        return np.unique(data[target])[0]
+
+    # If dataset empty
+    if len(data) == 0:
+        return parent_class
+
+    # If no features left
+    if len(features) == 0:
+        return parent_class
+
+    # Majority class
+    parent_class = data[target].mode()[0]
+
+    # Select best feature
+    gains = [InfoGain(data, f, target) for f in features]
+    best_feature = features[np.argmax(gains)]
+
+    tree = {best_feature: {}}
+
+    remaining_features = [f for f in features if f != best_feature]
+
+    # Split dataset
+    for value in np.unique(data[best_feature]):
+        subset = data[data[best_feature] == value]
+        subtree = ID3(subset, remaining_features, target, parent_class)
+        tree[best_feature][value] = subtree
+
+    return tree
+
+
+# -------- BUILD TREE --------
+features = dataset.columns[:-1]
+tree = ID3(dataset, features)
+
+print("\nDecision Tree (ID3):\n")
+print(tree)
