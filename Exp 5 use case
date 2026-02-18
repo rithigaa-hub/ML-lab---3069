@@ -1,0 +1,16 @@
+import numpy as np
+
+X = np.array([[1,1,1],[1,0,1],[0,1,0],[0,0,1],[0,0,0],[1,0,0]])
+y = np.array([1,1,1,0,0,0])
+
+P1, P0 = np.mean(y), 1-np.mean(y)
+m1, v1 = X[y==1].mean(0), X[y==1].var(0)+1e-6
+m0, v0 = X[y==0].mean(0), X[y==0].var(0)+1e-6
+
+g = lambda x,m,v: np.exp(-(x-m)**2/(2*v))/np.sqrt(2*np.pi*v)
+
+new = np.array([1,1,0])
+p1 = P1*np.prod(g(new,m1,v1))
+p0 = P0*np.prod(g(new,m0,v0))
+
+print("Prediction:", "Spam" if p1>p0 else "Not Spam")
