@@ -1,0 +1,28 @@
+P_pass = {'Yes': 4/6, 'No': 2/6}
+
+# Conditional probabilities
+P_study_given_pass = {'Yes': {'High': 3/4, 'Low': 1/4},
+                      'No': {'High': 0, 'Low': 1}}
+P_attendance_given_pass = {'Yes': {'High': 3/4, 'Low': 1/4},
+                           'No': {'High': 0, 'Low': 1}}
+
+def predict_pass(study, attendance):
+    # Compute unnormalized posterior
+    posterior_yes = P_pass['Yes'] * P_study_given_pass['Yes'][study] * P_attendance_given_pass['Yes'][attendance]
+    posterior_no = P_pass['No'] * P_study_given_pass['No'][study] * P_attendance_given_pass['No'][attendance]
+    
+    # Normalize
+    total = posterior_yes + posterior_no
+    prob_yes = posterior_yes / total if total != 0 else 0
+    prob_no = posterior_no / total if total != 0 else 0
+    
+    # Prediction
+    prediction = 'Yes' if prob_yes > prob_no else 'No'
+    return prediction, prob_yes, prob_no
+
+# Example inference
+study_input = 'High'
+attendance_input = 'High'
+prediction, prob_yes, prob_no = predict_pass(study_input, attendance_input)
+print(f"Given StudyHours={study_input}, Attendance={attendance_input}:")
+print(f"Prediction → Pass = {prediction} (P(Yes)={prob_yes:.2f}, P(No)={prob_no:.2f})")
